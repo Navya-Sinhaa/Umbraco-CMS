@@ -9,7 +9,10 @@ import type { ManifestSection } from '@umbraco-cms/backoffice/section';
 import type { UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import type { UmbExtensionManifestInitializer } from '@umbraco-cms/backoffice/extension-api';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
-import { UMB_CURRENT_USER_CONTEXT } from '@umbraco-cms/backoffice/current-user';
+import {
+	UMB_CURRENT_USER_CONTEXT,
+	UMB_CURRENT_USER_GROUP_ID_CONDITION_ALIAS,
+} from '@umbraco-cms/backoffice/current-user';
 import { UmbSysinfoRepository } from '@umbraco-cms/backoffice/sysinfo';
 
 export class UmbBackofficeContext extends UmbContextBase<UmbBackofficeContext> {
@@ -46,7 +49,8 @@ export class UmbBackofficeContext extends UmbContextBase<UmbBackofficeContext> {
 						'section',
 						(manifest) => allowedSections.includes(manifest.alias),
 						async (sections) => {
-							this.#allowedSections.setValue([...sections]);
+							console.log('updated sections', sections);
+							this.#allowedSections.setValue(sections);
 						},
 						'umbAllowedSectionsManifestInitializer',
 					);
@@ -54,6 +58,16 @@ export class UmbBackofficeContext extends UmbContextBase<UmbBackofficeContext> {
 				'umbAllowedSectionsObserver',
 			);
 		});
+
+		// Timeout to simulate some delay for reproducibility
+		setTimeout(() => {
+			umbExtensionsRegistry.appendCondition('Umb.Section.Content', {
+				alias: UMB_CURRENT_USER_GROUP_ID_CONDITION_ALIAS,
+				noneOf: ['<GUID>'],
+			});
+
+			console.log('Condition appended');
+		}, 5000);
 	}
 
 	async #getVersion() {
